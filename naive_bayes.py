@@ -4,7 +4,7 @@ import numpy as np
 class NaiveBayesClassifier:
     #%% INIT
     def __init__(self, alpha: float = 1.0):
-        self.alpha = alpha
+        self.alpha = alpha  # 1 for Laplace 
         
     #%% 
     def fit(self, X: list[list[str]], C: list[str]) -> None:
@@ -42,8 +42,8 @@ class NaiveBayesClassifier:
             ### 2. Count feature frequency
             class_trained[c]['Nc'] = len(class_trained[c]['vocab'])
         
-        self.class_trained = class_trained
-        self.V_size = V_size
+        self.class_trained_ = class_trained
+        self.V_size_ = V_size
         
     # Support Function    
     def get_vocab(self, 
@@ -61,7 +61,7 @@ class NaiveBayesClassifier:
             
         return vocab
     
-    def count_word(self, vocab: list[str]) -> int:
+    def count_word(self, vocab: list[str]) -> dict[str, int]:
         
         word_count = {}
         unique_vocab = set(vocab)
@@ -75,13 +75,13 @@ class NaiveBayesClassifier:
         return word_count
           
     #%%
-    def predict(self, X_test: list[str]) -> list[str]:
+    def predict_one(self, X_test: list[str]) -> list[str]:
         # Get list of class from training data
-        C = self.class_trained.keys()
+        C = self.class_trained_.keys()
         
         # Initiate posterior with prior value
         posterior_log_proba = {
-            c: np.log(self.class_trained[c]['prior']) for c in C
+            c: np.log(self.class_trained_[c]['prior']) for c in C
             }
         
         # Create vocab of testing item
@@ -89,14 +89,11 @@ class NaiveBayesClassifier:
         
         for word in x_vocab:
             for c in C:
-                if word in self.class_trained[c]['vocab']:
-                    Nci = self.class_trained[c]['count'][word]
-                else:
-                    Nci = 0
+                Nci = self.class_trained_[c]['count'].get(word, 0)
                 
                 posterior_log_proba[c] += np.log(
                     (Nci + self.alpha) / 
-                    (self.class_trained[c]['Nc'] + self.V_size)
+                    (self.class_trained_[c]['Nc'] + self.alpha * self.V_size_)
                     )
                 
         return max(posterior_log_proba, key = posterior_log_proba.get)
