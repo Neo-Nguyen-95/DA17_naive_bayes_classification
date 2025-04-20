@@ -70,7 +70,6 @@ for cat in categories:
 # Step 4. Prior probability of category
     report[cat]['prior'] = (
         len(df_train[df_train['topic']==cat])/len(df_train)
-          
          )
     
 #%% TESTING
@@ -86,10 +85,13 @@ for cat in categories:
         for word in testing_count.keys():
             if word in set(vocab_train):
                 Nci = report[cat]['count'][word]
-                Nc = report[cat]['Nc']
+            else:
+                Nci = 0
                 
-                # update posterior    
-                posterior *= (cal_word_prob(Nci, Nc, V_size) ** testing_count[word])
+            Nc = report[cat]['Nc']
+            
+            # update posterior    
+            posterior *= (cal_word_prob(Nci, Nc, V_size) ** testing_count[word])
          
         log_posterior = np.log(posterior)
         
